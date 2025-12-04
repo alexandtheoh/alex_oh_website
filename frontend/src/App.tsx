@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { initLLM, sendPrompt } from "./llm/llm"
 import * as webllm from "@mlc-ai/web-llm";
+import './App.css'
 
 export default function ChatbotUI() {
   // for llm engine
@@ -89,40 +90,81 @@ export default function ChatbotUI() {
     // return content.map(part => part.text || "").join("");
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
 
   return (
-    <div className="w-full h-screen flex flex-col p-4 gap-4 bg-gray-100">
-      <div className="text-2xl font-bold">WebLLM Chatbot</div>
-
-      <div style={{ padding: 20 }}>
-        <h2>Loading LLM…</h2>
-        <p>{progress}</p>
+    <div className="chat-container">
+      <div className="chat-header">
+        <div className="chat-title" style={{ padding: '8px' }} >
+          <h2>Alex Ai</h2>
+          <span className="status" >{progress}</span>
+          <span className="status">Online</span>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 bg-white rounded-2xl shadow">
-        {messages.map((m, i) => (
-          <div key={i} className="mb-3">
-            <div className="font-semibold capitalize">{m.role}</div>
-            <div>{renderContent(m.content)}</div>
+      <div className="messages-container">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`message-wrapper ${message.role}`}
+          >
+            <div className="message">
+              <div className="message-avatar">
+                {message.role === 'user' ? '👤' : '🤖'}
+              </div>
+              <div className="message-content">
+                <div className="message-text">{renderContent(message.content)}</div>
+              </div>
+            </div>
           </div>
         ))}
+        
+        {loading && (
+          <div className="message-wrapper assistant">
+            <div className="message">
+              <div className="message-avatar">🤖</div>
+              <div className="message-content">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          className="flex-1 p-3 rounded-xl border shadow"
-          placeholder="Type a message..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-        />
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded-xl shadow"
-          onClick={sendMessage}
-        >
-          Send
-        </button>
+      <div className="input-container">
+        <div className="input-wrapper">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message here..."
+            className="chat-input"
+            disabled={loading}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!input.trim() || loading}
+            className={`send-button ${input.trim() && !loading ? 'active' : ''}`}
+          >
+            Send
+          </button>
+        </div>
+        <div className="input-hint">
+          Press Enter to send • Shift + Enter for new line
+        </div>
       </div>
     </div>
+    
   );
 }
