@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { initLLM, sendPrompt } from "./llm/llm"
-import * as webllm from "@mlc-ai/web-llm";
+import { embedQuery } from "./llm/rag"
 import './App.css'
+
+import * as webllm from "@mlc-ai/web-llm";
+
 
 export default function ChatbotUI() {
   // for llm engine
@@ -9,7 +12,7 @@ export default function ChatbotUI() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -28,8 +31,12 @@ export default function ChatbotUI() {
   const [messages, setMessages] = useState<webllm.ChatCompletionMessageParam[]>([]);
   const [input, setInput] = useState("");
 
+
+
   const sendMessage = async () => {
     if (!input.trim()) return;
+
+    await embedQuery(input)
 
     const userMsg: webllm.ChatCompletionMessageParam = {
       role: "user",
@@ -80,7 +87,7 @@ export default function ChatbotUI() {
     }
   };
 
-  // helper
+  // helpers
   const renderContent = (content: string | webllm.ChatCompletionContentPart[] | null | undefined) => {
     if (!content) return "";
     if (typeof content === "string") return content;
